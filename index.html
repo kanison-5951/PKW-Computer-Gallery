@@ -49,12 +49,12 @@
     </div>
   </nav>
 
-  <!-- Main Hero Banner Section (แก้ไขใส่รูปปก) -->
+  <!-- Main Hero Banner Section -->
   <header id="home-section" class="gradient-bg py-6 sm:py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
     <div class="max-w-7xl mx-auto">
       <!-- Banner Image -->
       <div class="rounded-2xl overflow-hidden shadow-2xl mb-6 border border-white/20 bg-slate-900">
-        <img src="coverpage.jpg" alt="PKW Computer Project Gallery Banner" class="w-full h-auto object-cover block">
+        <img src="www.pkw.ac.th.png" alt="PKW Computer Project Gallery Banner" class="w-full h-auto object-cover block">
       </div>
 
       <!-- Search Bar -->
@@ -212,7 +212,7 @@
     </div>
   </footer>
 
-  <!-- Modal: Project Detail -->
+  <!-- Modal: Detail -->
   <div id="detailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-100 p-6 relative">
       <button onclick="closeModal('detailModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-2xl font-bold w-8 h-8 rounded-full flex items-center justify-center bg-slate-100">✕</button>
@@ -220,12 +220,12 @@
     </div>
   </div>
 
-  <!-- Modal: Admin Auth & Portal -->
+  <!-- Modal: Admin -->
   <div id="adminModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-100 p-6 relative">
       <button onclick="closeModal('adminModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-2xl font-bold w-8 h-8 rounded-full flex items-center justify-center bg-slate-100">✕</button>
       
-      <!-- Step 1: Login -->
+      <!-- Login -->
       <div id="adminLoginStep" class="py-4">
         <div class="text-center mb-6">
           <div class="text-4xl mb-2">🔐</div>
@@ -240,7 +240,7 @@
         </div>
       </div>
 
-      <!-- Step 2: Teacher Portal (Tabs) -->
+      <!-- Admin Portal -->
       <div id="adminPortalStep" class="hidden py-2">
         <div class="flex items-center justify-between border-b pb-3 mb-4">
           <div>
@@ -254,7 +254,6 @@
           </button>
         </div>
 
-        <!-- Navigation Tabs -->
         <div class="flex border-b border-slate-200 mb-6 gap-6 text-sm">
           <button id="tabAddProjectBtn" onclick="switchAdminTab('addProject')" class="tab-btn pb-2 font-medium text-slate-600 transition active">
             ➕ เพิ่มผลงานนักเรียน
@@ -264,7 +263,6 @@
           </button>
         </div>
 
-        <!-- Tab Content 1: Add Project Form -->
         <div id="tabAddProject" class="space-y-4 text-sm">
           <form id="addProjectForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -342,9 +340,7 @@
           </form>
         </div>
 
-        <!-- Tab Content 2: Manage Subjects -->
         <div id="tabManageSubjects" class="hidden space-y-6">
-          <!-- Add / Edit Subject Box -->
           <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
             <h4 id="subjectFormTitle" class="font-bold text-slate-900 text-sm mb-3 flex items-center gap-1.5">
               <span>➕</span> เพิ่มรายวิชาและรหัสวิชาใหม่
@@ -370,7 +366,6 @@
             </div>
           </div>
 
-          <!-- Subject List Table -->
           <div>
             <h4 class="font-bold text-slate-800 text-sm mb-2 flex items-center justify-between">
               <span>📋 รายวิชาทั้งหมดในระบบ</span>
@@ -395,7 +390,7 @@
     </div>
   </div>
 
-  <!-- Custom Confirmation Modal -->
+  <!-- Confirmation Modal -->
   <div id="confirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center">
       <div id="confirmIcon" class="text-4xl mb-2">⚠️</div>
@@ -409,31 +404,40 @@
   </div>
 
   <script>
+    // ⚠️ นำ Web App URL ที่ได้จาก Google Apps Script มาวางตรงนี้
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbym6EQUCilB2h-MkhMxeP1o_xcTCZFQ8i5SN7pWUJXlrd5WDLCs4PzcuPY5yjwEElNNmA/exec";
+
     let allSubjects = [];
     let allProjects = [];
     let authenticatedPassword = "";
 
-    // ดึงข้อมูลเมื่อโหลดหน้าเว็บ
     window.onload = function() {
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        // ดึงรายวิชาจาก Google Sheets
-        google.script.run
-          .withSuccessHandler(function(subjectsData) {
-            allSubjects = subjectsData || [];
-            updateSubjectDropdowns();
-            renderSubjectTable();
-          })
-          .getSubjects();
-
-        // ดึงผลงานจาก Google Sheets
-        google.script.run
-          .withSuccessHandler(function(projectsData) {
-            allProjects = projectsData || [];
-            renderProjects(allProjects);
-          })
-          .getProjects();
-      }
+      fetchData();
     };
+
+    function fetchData() {
+      fetch(WEB_APP_URL)
+        .then(res => res.json())
+        .then(data => {
+          allProjects = data.projects || [];
+          allSubjects = data.subjects || [];
+          renderProjects(allProjects);
+          updateSubjectDropdowns();
+          renderSubjectTable();
+        })
+        .catch(err => {
+          showToast('ไม่สามารถเชื่อมต่อฐานข้อมูลได้', 'error');
+          console.error(err);
+        });
+    }
+
+    function sendApiRequest(action, data, password) {
+      return fetch(WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: action, password: password, data: data })
+      }).then(res => res.json());
+    }
 
     function showToast(message, type = 'success') {
       const container = document.getElementById('toastContainer');
@@ -489,7 +493,7 @@
         <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl transition duration-300 flex flex-col group relative">
           ${authenticatedPassword ? `
             <div class="absolute top-3 right-3 z-20 flex gap-1 bg-white/90 backdrop-blur-md p-1 rounded-lg shadow-sm">
-              <button onclick="deleteProject(${p.id})" class="text-xs text-red-600 hover:bg-red-50 p-1 rounded" title="ลบผลงาน">🗑️</button>
+              <button onclick="deleteProject('${p.id}')" class="text-xs text-red-600 hover:bg-red-50 p-1 rounded" title="ลบผลงาน">🗑️</button>
             </div>
           ` : ''}
 
@@ -524,7 +528,7 @@
             </div>
 
             <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-              <button onclick="openDetailModal(${p.id})" class="text-xs font-bold text-slate-700 hover:text-blue-600 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-lg transition flex-1 text-center">
+              <button onclick="openDetailModal('${p.id}')" class="text-xs font-bold text-slate-700 hover:text-blue-600 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-lg transition flex-1 text-center">
                 ดูรายละเอียด
               </button>
               <a href="${p.projectUrl}" target="_blank" class="text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-lg transition shadow-sm flex items-center justify-center gap-1 flex-1">
@@ -567,10 +571,10 @@
           <td class="p-3 font-bold text-blue-700">${s.code}</td>
           <td class="p-3 font-medium text-slate-800">${s.name}</td>
           <td class="p-3 text-right">
-            <button onclick="editSubject(${s.id})" class="text-blue-600 hover:text-blue-800 font-semibold px-2 py-1 rounded hover:bg-blue-50 mr-1">
+            <button onclick="editSubject('${s.id}')" class="text-blue-600 hover:text-blue-800 font-semibold px-2 py-1 rounded hover:bg-blue-50 mr-1">
               ✏️ แก้ไข
             </button>
-            <button onclick="deleteSubject(${s.id})" class="text-red-600 hover:text-red-800 font-semibold px-2 py-1 rounded hover:bg-red-50">
+            <button onclick="deleteSubject('${s.id}')" class="text-red-600 hover:text-red-800 font-semibold px-2 py-1 rounded hover:bg-red-50">
               🗑️ ลบ
             </button>
           </td>
@@ -593,33 +597,26 @@
       saveBtn.textContent = 'กำลังบันทึก...';
 
       const subjectData = {
-        id: editId ? Number(editId) : Date.now(),
+        id: editId ? editId : Date.now(),
         code: code,
         name: name
       };
 
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run
-          .withSuccessHandler(function(res) {
-            saveBtn.disabled = false;
-            if (res.success) {
-              showToast(res.message, 'success');
-              resetSubjectForm();
-              google.script.run.withSuccessHandler(function(sData) {
-                allSubjects = sData || [];
-                updateSubjectDropdowns();
-                renderSubjectTable();
-              }).getSubjects();
-            } else {
-              showToast(res.message, 'error');
-            }
-          })
-          .saveSubject(subjectData, authenticatedPassword);
-      }
+      sendApiRequest('saveSubject', subjectData, authenticatedPassword)
+        .then(res => {
+          saveBtn.disabled = false;
+          if (res.success) {
+            showToast(res.message, 'success');
+            resetSubjectForm();
+            fetchData();
+          } else {
+            showToast(res.message, 'error');
+          }
+        });
     }
 
     function editSubject(id) {
-      const s = allSubjects.find(x => x.id === id);
+      const s = allSubjects.find(x => String(x.id) === String(id));
       if (!s) return;
 
       document.getElementById('editSubjectId').value = s.id;
@@ -643,53 +640,34 @@
     }
 
     function deleteSubject(id) {
-      const s = allSubjects.find(x => x.id === id);
+      const s = allSubjects.find(x => String(x.id) === String(id));
       if (!s) return;
 
-      showConfirm(
-        'ยืนยันการลบรายวิชา',
-        `คุณต้องการลบวิชา "${s.code} - ${s.name}" ใช่หรือไม่?`,
-        '🗑️',
-        () => {
-          if (typeof google !== 'undefined' && google.script && google.script.run) {
-            google.script.run
-              .withSuccessHandler(function(res) {
-                if (res.success) {
-                  showToast(res.message, 'success');
-                  allSubjects = allSubjects.filter(item => item.id !== id);
-                  updateSubjectDropdowns();
-                  renderSubjectTable();
-                } else {
-                  showToast(res.message, 'error');
-                }
-              })
-              .deleteSubject(id, authenticatedPassword);
-          }
-        }
-      );
+      showConfirm('ยืนยันการลบรายวิชา', `คุณต้องการลบวิชา "${s.code} - ${s.name}" ใช่หรือไม่?`, '🗑️', () => {
+        sendApiRequest('deleteSubject', { id: id }, authenticatedPassword)
+          .then(res => {
+            if (res.success) {
+              showToast(res.message, 'success');
+              fetchData();
+            } else {
+              showToast(res.message, 'error');
+            }
+          });
+      });
     }
 
     function deleteProject(id) {
-      showConfirm(
-        'ยืนยันการลบผลงาน',
-        'คุณต้องการลบผลงานนี้ใช่หรือไม่?',
-        '🗑️',
-        () => {
-          if (typeof google !== 'undefined' && google.script && google.script.run) {
-            google.script.run
-              .withSuccessHandler(function(res) {
-                if (res.success) {
-                  showToast(res.message, 'success');
-                  allProjects = allProjects.filter(p => p.id !== id);
-                  renderProjects(allProjects);
-                } else {
-                  showToast(res.message, 'error');
-                }
-              })
-              .deleteProject(id, authenticatedPassword);
-          }
-        }
-      );
+      showConfirm('ยืนยันการลบผลงาน', 'คุณต้องการลบผลงานนี้ใช่หรือไม่?', '🗑️', () => {
+        sendApiRequest('deleteProject', { id: id }, authenticatedPassword)
+          .then(res => {
+            if (res.success) {
+              showToast(res.message, 'success');
+              fetchData();
+            } else {
+              showToast(res.message, 'error');
+            }
+          });
+      });
     }
 
     function handleSearch() { filterData(); }
@@ -754,7 +732,7 @@
     }
 
     function openDetailModal(id) {
-      const p = allProjects.find(x => x.id === id);
+      const p = allProjects.find(x => String(x.id) === String(id));
       if (!p) return;
 
       document.getElementById('modalDetailContent').innerHTML = `
@@ -817,21 +795,18 @@
         return;
       }
 
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run
-          .withSuccessHandler(function(isValid) {
-            if (isValid) {
-              authenticatedPassword = pass;
-              document.getElementById('adminLoginStep').classList.add('hidden');
-              document.getElementById('adminPortalStep').classList.remove('hidden');
-              showToast('เข้าสู่ระบบสำเร็จ', 'success');
-              renderProjects(allProjects);
-            } else {
-              showToast('รหัสผ่านไม่ถูกต้อง', 'error');
-            }
-          })
-          .verifyAdmin(pass);
-      }
+      sendApiRequest('verifyAdmin', {}, pass)
+        .then(res => {
+          if (res.success) {
+            authenticatedPassword = pass;
+            document.getElementById('adminLoginStep').classList.add('hidden');
+            document.getElementById('adminPortalStep').classList.remove('hidden');
+            showToast('เข้าสู่ระบบสำเร็จ', 'success');
+            renderProjects(allProjects);
+          } else {
+            showToast('รหัสผ่านไม่ถูกต้อง', 'error');
+          }
+        });
     }
 
     function logoutAdmin() {
@@ -883,25 +858,19 @@
         keywords: document.getElementById('formKeywords').value
       };
 
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run
-          .withSuccessHandler(function(res) {
-            btn.disabled = false;
-            btn.textContent = '💾 บันทึกและเผยแพร่';
-            if (res.success) {
-              showToast(res.message, 'success');
-              document.getElementById('addProjectForm').reset();
-              closeModal('adminModal');
-              google.script.run.withSuccessHandler(function(data) {
-                allProjects = data || [];
-                renderProjects(allProjects);
-              }).getProjects();
-            } else {
-              showToast('เกิดข้อผิดพลาด: ' + res.message, 'error');
-            }
-          })
-          .saveProject(formData, authenticatedPassword);
-      }
+      sendApiRequest('saveProject', formData, authenticatedPassword)
+        .then(res => {
+          btn.disabled = false;
+          btn.textContent = '💾 บันทึกและเผยแพร่';
+          if (res.success) {
+            showToast(res.message, 'success');
+            document.getElementById('addProjectForm').reset();
+            closeModal('adminModal');
+            fetchData();
+          } else {
+            showToast('เกิดข้อผิดพลาด: ' + res.message, 'error');
+          }
+        });
     }
 
     function convertFileToBase64(file) {
