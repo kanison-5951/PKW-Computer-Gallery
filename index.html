@@ -181,18 +181,30 @@
     <!-- About Teacher Section -->
     <section id="about-section" class="mt-16 bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm">
       <div class="flex flex-col md:flex-row gap-6 items-center">
-        <div class="w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-blue-100 flex items-center justify-center text-5xl sm:text-6xl flex-shrink-0 border-4 border-blue-50 shadow">
-          👨‍🏫
+        <!-- รูปภาพครู -->
+        <div class="w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden border-4 border-blue-100 shadow-md flex-shrink-0 bg-slate-100">
+          <img src="teacher.jpg" alt="ครูคณิศร เสมพืช (ครูเบลล์)" class="w-full h-full object-cover">
         </div>
-        <div>
-          <div class="inline-block bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full mb-2">กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี</div>
-          <h3 class="text-2xl font-bold text-slate-900 mb-1">ครูคณิศร เสมพืช</h3>
-          <p class="text-sm font-medium text-slate-600 mb-3">ครูผู้สอนวิชาคอมพิวเตอร์ • โรงเรียนภูเก็ตวิทยาลัย</p>
-          <p class="text-sm text-slate-600 leading-relaxed max-w-3xl">
+        
+        <div class="flex-grow text-center md:text-left">
+          <div class="inline-block bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full mb-2">
+            กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี
+          </div>
+          <h3 class="text-2xl font-bold text-slate-900 mb-1">ครูคณิศร เสมพืช (ครูเบลล์)</h3>
+          <p class="text-sm font-semibold text-blue-600 mb-1">ครูผู้สอนวิชาคอมพิวเตอร์ • โรงเรียนภูเก็ตวิทยาลัย</p>
+          <p class="text-xs text-slate-500 mb-4">สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาพังงา ภูเก็ต ระนอง</p>
+          
+          <p class="text-sm text-slate-600 leading-relaxed max-w-3xl mb-4">
             มุ่งเน้นการจัดการเรียนรู้ที่ส่งเสริมทักษะดิจิทัล การคิดเชิงคำนวณ และการพัฒนานวัตกรรมของนักเรียน 
             ระบบ PKW Computer Project Gallery นี้จัดทำขึ้นเพื่อให้เป็นพื้นที่รวบรวม เผยแพร่ และสร้างดิจิทัลพอร์ตโฟลิโอ (Digital Portfolio) 
             สำหรับนักเรียนในการนำไปต่อยอดด้านการศึกษาและการทำงานในอนาคต
           </p>
+
+          <div class="inline-flex items-center gap-2 bg-slate-50 border border-slate-200 px-3.5 py-2 rounded-xl text-xs sm:text-sm text-slate-700">
+            <span>✉️</span>
+            <span class="font-semibold text-slate-600">ติดต่อ:</span>
+            <a href="mailto:kanison@pkw.ac.th" class="text-blue-600 hover:underline font-medium">kanison@pkw.ac.th</a>
+          </div>
         </div>
       </div>
     </section>
@@ -203,7 +215,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
       <div>
         <div class="font-bold text-white text-base">PKW Computer Project Gallery</div>
-        <p class="text-slate-500">โรงเรียนภูเก็ตวิทยาลัย • ครูคณิศร เสมพืช</p>
+        <p class="text-sm font-medium text-slate-600 mb-3">ครูคณิศร เสมพืช • โรงเรียนภูเก็ตวิทยาลัย</p>
       </div>
       <div class="text-center sm:text-right text-slate-500">
         <p>“เรียนรู้ • สร้างสรรค์ • แบ่งปัน • ต่อยอด”</p>
@@ -876,7 +888,7 @@
     function convertFileToBase64(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
+        reader.onload = () => resolve(resolve.result);
         reader.onerror = error => reject(error);
         reader.readAsDataURL(file);
       });
