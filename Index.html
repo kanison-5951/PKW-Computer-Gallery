@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PKW Computer Project Gallery | โรงเรียนภูเก็ตวิทยาลัย</title>
+<!-- Tailwind CSS for styling -->
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; }
+  .gradient-bg { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #2563eb 100%); }
+  .category-card:hover { transform: translateY(-4px); }
+  .tab-btn.active { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: 700; }
+</style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- Notification Toast Container -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+
+  <!-- Navigation Bar -->
+  <nav class="bg-white/90 backdrop-blur-md sticky top-0 z-40 border-b border-slate-200 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16 items-center">
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="resetFilters(); navigateTo('home');">
+          <span class="text-2xl">💻</span>
+          <div>
+            <div class="font-extrabold text-lg tracking-tight text-slate-900">PKW <span class="text-blue-600">Computer Gallery</span></div>
+            <div class="text-xs text-slate-500 font-medium">โรงเรียนภูเก็ตวิทยาลัย • ครูคณิศร เสมพืช</div>
+          </div>
+        </div>
+        
+        <div class="hidden md:flex items-center space-x-6 text-sm font-medium text-slate-600">
+          <button onclick="navigateTo('home')" class="hover:text-blue-600 transition">หน้าแรก</button>
+          <button onclick="navigateTo('projects')" class="hover:text-blue-600 transition">ผลงานทั้งหมด</button>
+          <button onclick="navigateTo('subjects')" class="hover:text-blue-600 transition">รายวิชา</button>
+          <button onclick="navigateTo('students')" class="hover:text-blue-600 transition">นักเรียน</button>
+          <button onclick="navigateTo('years')" class="hover:text-blue-600 transition">ปีการศึกษา</button>
+          <button onclick="navigateTo('about')" class="hover:text-blue-600 transition">เกี่ยวกับครู</button>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <button onclick="openAdminModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold px-4 py-2 rounded-lg shadow transition flex items-center gap-1.5">
+            <span>👨‍🏫</span> <span>สำหรับครู</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Hero Banner Section (แก้ไขใส่รูปปก) -->
+  <header id="home-section" class="gradient-bg py-6 sm:py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div class="max-w-7xl mx-auto">
+      <!-- Banner Image -->
+      <div class="rounded-2xl overflow-hidden shadow-2xl mb-6 border border-white/20 bg-slate-200">
+        <img src="https://img1.pic.in.th/images/www.pkw.ac.th---Copy.jpg" alt="PKW Computer Project Gallery Banner" class="w-full h-auto object-cover block">
+      </div>
+
+      <!-- Search Bar -->
+      <div class="max-w-2xl mx-auto relative shadow-2xl rounded-2xl">
+        <div class="flex items-center bg-white rounded-2xl p-2 pl-4 text-slate-800">
+          <span class="text-xl text-slate-400 mr-2">🔍</span>
+          <input type="text" id="searchInput" onkeyup="handleSearch()" placeholder="ค้นหาผลงาน เช่น เว็บไซต์ รหัสวิชา ว30201 หรือชื่อนักเรียน..." class="w-full bg-transparent focus:outline-none text-slate-800 text-sm sm:text-base placeholder-slate-400 py-2">
+          <button onclick="executeSearch()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-xl transition text-sm whitespace-nowrap">
+            ค้นหา
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full">
+
+    <!-- Categories Grid Section -->
+    <section class="mb-12">
+      <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+        <span>📚</span> แบ่งผลงานตามหมวดหมู่
+      </h2>
+      <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+        <button onclick="filterCategory('เว็บไซต์')" class="category-card bg-white p-3 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition text-center group">
+          <div class="text-2xl mb-1 group-hover:scale-110 transition">🌐</div>
+          <div class="text-xs font-semibold text-slate-800">เว็บไซต์</div>
+        </button>
+        <button onclick="filterCategory('เกม')" class="category-card bg-white p-3 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition text-center group">
+          <div class="text-2xl mb-1 group-hover:scale-110 transition">🎮</div>
+          <div class="text-xs font-semibold text-slate-800">เกม</div>
+        </button>
+        <button onclick="filterCategory('แอปพลิเคชัน')" class="category-card bg-white p-3 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition text-center group">
+          <div class="text-2xl mb-1 group-hover:scale-110 transition">📱</div>
+          <div class="text-xs font-semibold text-slate-800">แอปพลิเคชัน</div>
+        </button>
+        <button onclick="filterCategory('AI')" class="category-card bg-white p-3 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition text-center group">
+          <div class="text-2xl mb-1 group-hover:scale-110 transition">🤖</div>
+          <div class="text-xs font-semibold text-slate-800">AI</div>
+        </button>
+        <button onclick="filterCategory('โปรแกรม')" class="category-card bg-white p-3 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition text-center group">
+          <div class="text-2xl mb-1 group-hover:scale-110 transition">💻</div>
+          <div class="text-xs font-semibold text-slate-800">โปรแกรม</div>
+        </button>
+        <button onclick="filterCategory('Multimedia')" class="category-card bg-white p-3 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition text-center group">
+          <div class="text-2xl mb-1 group-hover:scale-110 transition">🎨</div>
+          <div class="text-xs font-semibold text-slate-800">Multimedia</div>
+        </button>
+        <button onclick="filterCategory('Data')" class="category-card bg-white p-3 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition text-center group">
+          <div class="text-2xl mb-1 group-hover:scale-110 transition">📊</div>
+          <div class="text-xs font-semibold text-slate-800">Data</div>
+        </button>
+        <button onclick="filterCategory('โครงงาน')" class="category-card bg-white p-3 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition text-center group">
+          <div class="text-2xl mb-1 group-hover:scale-110 transition">🚀</div>
+          <div class="text-xs font-semibold text-slate-800">โครงงาน</div>
+        </button>
+      </div>
+    </section>
+
+    <!-- Filters Control Bar -->
+    <section id="projects-section" class="mb-8 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap gap-3 items-center justify-between">
+      <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+        <span class="text-sm font-semibold text-slate-700 flex items-center gap-1">
+          <span>⚙️</span> ตัวกรอง:
+        </span>
+        <select id="filterCategorySelect" onchange="applyFilters()" class="text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">ทุกประเภทผลงาน</option>
+          <option value="เว็บไซต์">🌐 เว็บไซต์</option>
+          <option value="เกม">🎮 เกม</option>
+          <option value="แอปพลิเคชัน">📱 แอปพลิเคชัน</option>
+          <option value="AI">🤖 AI</option>
+          <option value="โปรแกรม">💻 โปรแกรม</option>
+          <option value="Multimedia">🎨 Multimedia</option>
+          <option value="Data">📊 Data</option>
+          <option value="โครงงาน">🚀 โครงงาน</option>
+        </select>
+
+        <select id="filterSubjectSelect" onchange="applyFilters()" class="text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">ทุกรายวิชา</option>
+        </select>
+
+        <select id="filterYearSelect" onchange="applyFilters()" class="text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">ทุกปีการศึกษา</option>
+          <option value="2569">2569</option>
+          <option value="2568">2568</option>
+          <option value="2567">2567</option>
+        </select>
+      </div>
+
+      <div class="flex items-center gap-2 text-xs text-slate-500">
+        <span>แสดงผล <strong id="projectCount" class="text-blue-600 font-bold">0</strong> รายการ</span>
+        <button onclick="resetFilters()" class="text-slate-600 hover:text-red-600 bg-slate-100 px-2.5 py-1.5 rounded-md transition ml-2">
+          🔄 ล้างตัวกรอง
+        </button>
+      </div>
+    </section>
+
+    <!-- Student Portfolio Search Mode Heading -->
+    <div id="studentPortfolioHeader" class="hidden mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4 flex justify-between items-center">
+      <div>
+        <div class="text-xs font-semibold text-blue-600 uppercase tracking-wider">Digital Student Portfolio</div>
+        <h3 id="studentPortfolioName" class="text-xl font-bold text-slate-900">👨‍🎓 ผลงานนักเรียน</h3>
+      </div>
+      <button onclick="resetFilters()" class="text-xs bg-white border border-blue-300 text-blue-700 px-3 py-1.5 rounded-lg hover:bg-blue-100">
+        ดูผลงานทั้งหมด
+      </button>
+    </div>
+
+    <!-- Gallery Grid -->
+    <section>
+      <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="hidden text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300 my-6">
+        <div class="text-5xl mb-3">🔍</div>
+        <h3 class="text-lg font-bold text-slate-800 mb-1">ไม่พบผลงานตามเงื่อนไขที่ระบุ</h3>
+        <p class="text-sm text-slate-500 mb-4">ลองเปลี่ยนคำค้นหา หรือล้างตัวกรองเพื่อดูผลงานทั้งหมด</p>
+        <button onclick="resetFilters()" class="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+          ล้างตัวกรองค้นหา
+        </button>
+      </div>
+    </section>
+
+    <!-- About Teacher Section -->
+    <section id="about-section" class="mt-16 bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+      <div class="flex flex-col md:flex-row gap-6 items-center">
+        <div class="w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-blue-100 flex items-center justify-center text-5xl sm:text-6xl flex-shrink-0 border-4 border-blue-50 shadow">
+          👨‍🏫
+        </div>
+        <div>
+          <div class="inline-block bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full mb-2">กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี</div>
+          <h3 class="text-2xl font-bold text-slate-900 mb-1">ครูคณิศร เสมพืช</h3>
+          <p class="text-sm font-medium text-slate-600 mb-3">ครูผู้สอนวิชาคอมพิวเตอร์ • โรงเรียนภูเก็ตวิทยาลัย</p>
+          <p class="text-sm text-slate-600 leading-relaxed max-w-3xl">
+            มุ่งเน้นการจัดการเรียนรู้ที่ส่งเสริมทักษะดิจิทัล การคิดเชิงคำนวณ และการพัฒนานวัตกรรมของนักเรียน 
+            ระบบ PKW Computer Project Gallery นี้จัดทำขึ้นเพื่อให้เป็นพื้นที่รวบรวม เผยแพร่ และสร้างดิจิทัลพอร์ตโฟลิโอ (Digital Portfolio) 
+            สำหรับนักเรียนในการนำไปต่อยอดด้านการศึกษาและการทำงานในอนาคต
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 text-slate-400 text-xs sm:text-sm py-8 border-t border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div>
+        <div class="font-bold text-white text-base">PKW Computer Project Gallery</div>
+        <p class="text-slate-500">โรงเรียนภูเก็ตวิทยาลัย • ครูคณิศร เสมพืช</p>
+      </div>
+      <div class="text-center sm:text-right text-slate-500">
+        <p>“เรียนรู้ • สร้างสรรค์ • แบ่งปัน • ต่อยอด”</p>
+        <p class="mt-1">© 2026 PKW Computer. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Modal: Project Detail -->
+  <div id="detailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-100 p-6 relative">
+      <button onclick="closeModal('detailModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-2xl font-bold w-8 h-8 rounded-full flex items-center justify-center bg-slate-100">✕</button>
+      <div id="modalDetailContent"></div>
+    </div>
+  </div>
+
+  <!-- Modal: Admin Auth & Portal -->
+  <div id="adminModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-100 p-6 relative">
+      <button onclick="closeModal('adminModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-2xl font-bold w-8 h-8 rounded-full flex items-center justify-center bg-slate-100">✕</button>
+      
+      <!-- Step 1: Login -->
+      <div id="adminLoginStep" class="py-4">
+        <div class="text-center mb-6">
+          <div class="text-4xl mb-2">🔐</div>
+          <h3 class="text-xl font-bold text-slate-900">เข้าสู่ระบบสำหรับครู</h3>
+          <p class="text-xs text-slate-500">กรอกรหัสผ่านเพื่อจัดการผลงานและจัดการรายวิชา</p>
+        </div>
+        <div class="max-w-xs mx-auto space-y-4">
+          <input type="password" id="adminPassword" placeholder="กรอกรหัสผ่านครู..." class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <button onclick="verifyAdminLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-xl transition text-sm">
+            เข้าสู่ระบบ
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2: Teacher Portal (Tabs) -->
+      <div id="adminPortalStep" class="hidden py-2">
+        <div class="flex items-center justify-between border-b pb-3 mb-4">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <span>👨‍🏫</span> แผงจัดการระบบสำหรับครู
+            </h3>
+            <span class="text-xs text-green-700 bg-green-100 font-semibold px-2 py-0.5 rounded-full inline-block mt-1">ยืนยันสิทธิ์เรียบร้อยแล้ว</span>
+          </div>
+          <button onclick="logoutAdmin()" class="text-xs text-red-600 hover:bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg transition">
+            ออกจากระบบ
+          </button>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="flex border-b border-slate-200 mb-6 gap-6 text-sm">
+          <button id="tabAddProjectBtn" onclick="switchAdminTab('addProject')" class="tab-btn pb-2 font-medium text-slate-600 transition active">
+            ➕ เพิ่มผลงานนักเรียน
+          </button>
+          <button id="tabManageSubjectsBtn" onclick="switchAdminTab('manageSubjects')" class="tab-btn pb-2 font-medium text-slate-600 transition">
+            📚 จัดการรายวิชาและรหัสวิชา
+          </button>
+        </div>
+
+        <!-- Tab Content 1: Add Project Form -->
+        <div id="tabAddProject" class="space-y-4 text-sm">
+          <form id="addProjectForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">ชื่อผลงาน *</label>
+                <input type="text" id="formTitle" required placeholder="เช่น ระบบจองห้องเรียนออนไลน์" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">ชื่อนักเรียน (คั่นด้วยจุลภาค) *</label>
+                <input type="text" id="formStudents" required placeholder="เช่น นาย A, นาย B, นาย C" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">ชั้น / ห้องเรียน *</label>
+                <input type="text" id="formRoom" required placeholder="เช่น ม.5/2" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">รายวิชาและรหัสวิชา *</label>
+                <select id="formSubject" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
+                </select>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">ปีการศึกษา *</label>
+                <input type="text" id="formYear" required value="2569" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">ประเภทผลงาน *</label>
+                <select id="formCategory" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
+                  <option value="เว็บไซต์">🌐 เว็บไซต์</option>
+                  <option value="เกม">🎮 เกม</option>
+                  <option value="แอปพลิเคชัน">📱 แอปพลิเคชัน</option>
+                  <option value="AI">🤖 AI</option>
+                  <option value="โปรแกรม">💻 โปรแกรม</option>
+                  <option value="Multimedia">🎨 Multimedia</option>
+                  <option value="Data">📊 Data</option>
+                  <option value="โครงงาน">🚀 โครงงาน</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">คำอธิบายผลงาน</label>
+              <textarea id="formDescription" rows="3" placeholder="อธิบายแนวคิดและจุดเด่นของผลงานพอสังเขป..." class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">อัปโหลดรูปปก (ไฟล์รูปภาพ)</label>
+                <input type="file" id="formCoverFile" accept="image/*" class="w-full px-3 py-1.5 border rounded-lg text-xs bg-white text-slate-700 focus:ring-2 focus:ring-blue-500 file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">ลิงก์ผลงานจริง (URL หลัก) *</label>
+                <input type="url" id="formProjectUrl" required placeholder="https://..." class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">ลิงก์เอกสาร/เล่มรายงาน (URL)</label>
+                <input type="url" id="formDocUrl" placeholder="https://..." class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">ลิงก์นำเสนอวิดีโอ (YouTube URL)</label>
+                <input type="url" id="formVideoUrl" placeholder="https://..." class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">คำสำคัญ (Keywords คั่นด้วยจุลภาค)</label>
+              <input type="text" id="formKeywords" placeholder="เช่น AI, Python, Canva" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div class="pt-3 border-t flex justify-end gap-3">
+              <button type="button" onclick="closeModal('adminModal')" class="px-4 py-2 border rounded-xl text-slate-600 hover:bg-slate-50">ยกเลิก</button>
+              <button type="submit" id="submitBtn" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow transition">
+                💾 บันทึกและเผยแพร่
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Tab Content 2: Manage Subjects -->
+        <div id="tabManageSubjects" class="hidden space-y-6">
+          <!-- Add / Edit Subject Box -->
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <h4 id="subjectFormTitle" class="font-bold text-slate-900 text-sm mb-3 flex items-center gap-1.5">
+              <span>➕</span> เพิ่มรายวิชาและรหัสวิชาใหม่
+            </h4>
+            <input type="hidden" id="editSubjectId" value="">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">รหัสวิชา *</label>
+                <input type="text" id="subjectCodeInput" placeholder="เช่น ว30201" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 bg-white">
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-semibold text-slate-700 mb-1">ชื่อวิชา *</label>
+                <input type="text" id="subjectNameInput" placeholder="เช่น การพัฒนาเว็บไซต์" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 bg-white">
+              </div>
+            </div>
+            <div class="mt-3 flex justify-end gap-2">
+              <button id="cancelSubjectEditBtn" onclick="resetSubjectForm()" class="hidden px-3 py-1.5 text-xs border rounded-lg bg-white text-slate-600 hover:bg-slate-100">
+                ยกเลิกการแก้ไข
+              </button>
+              <button onclick="saveSubject()" id="saveSubjectBtn" class="px-4 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow transition">
+                ➕ เพิ่มวิชา
+              </button>
+            </div>
+          </div>
+
+          <!-- Subject List Table -->
+          <div>
+            <h4 class="font-bold text-slate-800 text-sm mb-2 flex items-center justify-between">
+              <span>📋 รายวิชาทั้งหมดในระบบ</span>
+              <span class="text-xs text-slate-500 font-normal">ทั้งหมด <strong id="subjectCount">0</strong> รายวิชา</span>
+            </h4>
+            <div class="border rounded-xl overflow-hidden shadow-sm">
+              <table class="w-full text-left text-xs text-slate-700">
+                <thead class="bg-slate-100 text-slate-800 font-bold border-b">
+                  <tr>
+                    <th class="p-3">รหัสวิชา</th>
+                    <th class="p-3">ชื่อวิชา</th>
+                    <th class="p-3 text-right">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody id="subjectTableBody" class="divide-y divide-slate-200 bg-white">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Confirmation Modal -->
+  <div id="confirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center">
+      <div id="confirmIcon" class="text-4xl mb-2">⚠️</div>
+      <h3 id="confirmTitle" class="text-lg font-bold text-slate-900 mb-2">ยืนยันการทำรายการ</h3>
+      <p id="confirmMessage" class="text-xs text-slate-600 mb-6">คุณแน่ใจหรือไม่ที่จะดำเนินการนี้?</p>
+      <div class="flex justify-center gap-3">
+        <button id="confirmCancelBtn" class="px-4 py-2 border rounded-xl text-xs text-slate-600 hover:bg-slate-50">ยกเลิก</button>
+        <button id="confirmActionBtn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl text-xs shadow transition">ตกลง</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let allSubjects = [];
+    let allProjects = [];
+    let authenticatedPassword = "";
+
+    // ดึงข้อมูลเมื่อโหลดหน้าเว็บ
+    window.onload = function() {
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        // ดึงรายวิชาจาก Google Sheets
+        google.script.run
+          .withSuccessHandler(function(subjectsData) {
+            allSubjects = subjectsData || [];
+            updateSubjectDropdowns();
+            renderSubjectTable();
+          })
+          .getSubjects();
+
+        // ดึงผลงานจาก Google Sheets
+        google.script.run
+          .withSuccessHandler(function(projectsData) {
+            allProjects = projectsData || [];
+            renderProjects(allProjects);
+          })
+          .getProjects();
+      }
+    };
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      const bgColor = type === 'success' ? 'bg-slate-900 text-white border-l-4 border-green-500' : 'bg-red-900 text-white border-l-4 border-red-500';
+      const icon = type === 'success' ? '✅' : '❌';
+
+      toast.className = `p-3 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-medium pointer-events-auto transform transition duration-300 translate-y-2 ${bgColor}`;
+      toast.innerHTML = `<span>${icon}</span> <span class="flex-1">${message}</span>`;
+
+      container.appendChild(toast);
+      setTimeout(() => { toast.classList.remove('translate-y-2'); }, 10);
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function showConfirm(title, message, icon, onConfirm) {
+      const modal = document.getElementById('confirmModal');
+      document.getElementById('confirmTitle').textContent = title;
+      document.getElementById('confirmMessage').textContent = message;
+      document.getElementById('confirmIcon').textContent = icon || '⚠️';
+
+      const cancelBtn = document.getElementById('confirmCancelBtn');
+      const actionBtn = document.getElementById('confirmActionBtn');
+
+      const handleCancel = () => { modal.classList.add('hidden'); cleanup(); };
+      const handleAction = () => { modal.classList.add('hidden'); cleanup(); onConfirm(); };
+      const cleanup = () => {
+        cancelBtn.removeEventListener('click', handleCancel);
+        actionBtn.removeEventListener('click', handleAction);
+      };
+
+      cancelBtn.addEventListener('click', handleCancel);
+      actionBtn.addEventListener('click', handleAction);
+      modal.classList.remove('hidden');
+    }
+
+    function renderProjects(projects) {
+      const grid = document.getElementById('projectsGrid');
+      const emptyState = document.getElementById('emptyState');
+      document.getElementById('projectCount').textContent = projects.length;
+
+      if (projects.length === 0) {
+        grid.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      grid.innerHTML = projects.map(p => `
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl transition duration-300 flex flex-col group relative">
+          ${authenticatedPassword ? `
+            <div class="absolute top-3 right-3 z-20 flex gap-1 bg-white/90 backdrop-blur-md p-1 rounded-lg shadow-sm">
+              <button onclick="deleteProject(${p.id})" class="text-xs text-red-600 hover:bg-red-50 p-1 rounded" title="ลบผลงาน">🗑️</button>
+            </div>
+          ` : ''}
+
+          <div class="h-48 bg-slate-100 relative overflow-hidden">
+            <img src="${p.cover || 'https://via.placeholder.com/600x400?text=PKW+Computer'}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://via.placeholder.com/600x400?text=PKW+Project'">
+            <span class="absolute top-3 left-3 bg-blue-600/90 backdrop-blur-md text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+              ${p.category || 'ผลงาน'}
+            </span>
+          </div>
+
+          <div class="p-5 flex-grow flex flex-col justify-between">
+            <div>
+              <h3 class="font-bold text-lg text-slate-900 mb-2 line-clamp-2 hover:text-blue-600 transition">
+                ${p.title}
+              </h3>
+              <div class="space-y-1.5 text-xs text-slate-600 mb-4">
+                <div class="flex items-start gap-1.5 cursor-pointer hover:text-blue-600" onclick="filterByStudent('${p.students}')">
+                  <span class="text-sm">👨‍🎓</span>
+                  <span class="font-medium line-clamp-1"><strong class="text-slate-800">นักเรียน:</strong> ${p.students}</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="flex items-center gap-1"><span>🏫</span> ${p.room || '-'}</span>
+                  <span class="flex items-center gap-1"><span>📅</span> ปี ${p.year || '-'}</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span>📚</span> <span class="line-clamp-1 font-semibold text-blue-700">${p.subject || '-'}</span>
+                </div>
+              </div>
+              <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed mb-4">
+                ${p.description || 'ไม่มีคำอธิบายเพิ่มเติม'}
+              </p>
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+              <button onclick="openDetailModal(${p.id})" class="text-xs font-bold text-slate-700 hover:text-blue-600 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-lg transition flex-1 text-center">
+                ดูรายละเอียด
+              </button>
+              <a href="${p.projectUrl}" target="_blank" class="text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-lg transition shadow-sm flex items-center justify-center gap-1 flex-1">
+                <span>🔗</span> <span>เปิดผลงาน</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function updateSubjectDropdowns() {
+      const filterSelect = document.getElementById('filterSubjectSelect');
+      const formSelect = document.getElementById('formSubject');
+
+      let filterHTML = '<option value="">ทุกรายวิชา</option>';
+      let formHTML = '<option value="">-- เลือกรายวิชา --</option>';
+
+      allSubjects.forEach(s => {
+        const str = `${s.code} - ${s.name}`;
+        filterHTML += `<option value="${str}">${str}</option>`;
+        formHTML += `<option value="${str}">${str}</option>`;
+      });
+
+      filterSelect.innerHTML = filterHTML;
+      if (formSelect) formSelect.innerHTML = formHTML;
+    }
+
+    function renderSubjectTable() {
+      const tbody = document.getElementById('subjectTableBody');
+      document.getElementById('subjectCount').textContent = allSubjects.length;
+
+      if (allSubjects.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-400">ยังไม่มีข้อมูลรายวิชา</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = allSubjects.map(s => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-3 font-bold text-blue-700">${s.code}</td>
+          <td class="p-3 font-medium text-slate-800">${s.name}</td>
+          <td class="p-3 text-right">
+            <button onclick="editSubject(${s.id})" class="text-blue-600 hover:text-blue-800 font-semibold px-2 py-1 rounded hover:bg-blue-50 mr-1">
+              ✏️ แก้ไข
+            </button>
+            <button onclick="deleteSubject(${s.id})" class="text-red-600 hover:text-red-800 font-semibold px-2 py-1 rounded hover:bg-red-50">
+              🗑️ ลบ
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function saveSubject() {
+      const code = document.getElementById('subjectCodeInput').value.trim();
+      const name = document.getElementById('subjectNameInput').value.trim();
+      const editId = document.getElementById('editSubjectId').value;
+
+      if (!code || !name) {
+        showToast('กรุณากรอกทั้งรหัสวิชาและชื่อวิชา', 'error');
+        return;
+      }
+
+      const saveBtn = document.getElementById('saveSubjectBtn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'กำลังบันทึก...';
+
+      const subjectData = {
+        id: editId ? Number(editId) : Date.now(),
+        code: code,
+        name: name
+      };
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            saveBtn.disabled = false;
+            if (res.success) {
+              showToast(res.message, 'success');
+              resetSubjectForm();
+              google.script.run.withSuccessHandler(function(sData) {
+                allSubjects = sData || [];
+                updateSubjectDropdowns();
+                renderSubjectTable();
+              }).getSubjects();
+            } else {
+              showToast(res.message, 'error');
+            }
+          })
+          .saveSubject(subjectData, authenticatedPassword);
+      }
+    }
+
+    function editSubject(id) {
+      const s = allSubjects.find(x => x.id === id);
+      if (!s) return;
+
+      document.getElementById('editSubjectId').value = s.id;
+      document.getElementById('subjectCodeInput').value = s.code;
+      document.getElementById('subjectNameInput').value = s.name;
+
+      document.getElementById('subjectFormTitle').innerHTML = '<span>✏️</span> แก้ไขรายวิชา';
+      document.getElementById('saveSubjectBtn').innerHTML = '💾 บันทึกการแก้ไข';
+      document.getElementById('cancelSubjectEditBtn').classList.remove('hidden');
+    }
+
+    function resetSubjectForm() {
+      document.getElementById('editSubjectId').value = '';
+      document.getElementById('subjectCodeInput').value = '';
+      document.getElementById('subjectNameInput').value = '';
+
+      document.getElementById('subjectFormTitle').innerHTML = '<span>➕</span> เพิ่มรายวิชาและรหัสวิชาใหม่';
+      document.getElementById('saveSubjectBtn').innerHTML = '➕ เพิ่มวิชา';
+      document.getElementById('saveSubjectBtn').disabled = false;
+      document.getElementById('cancelSubjectEditBtn').classList.add('hidden');
+    }
+
+    function deleteSubject(id) {
+      const s = allSubjects.find(x => x.id === id);
+      if (!s) return;
+
+      showConfirm(
+        'ยืนยันการลบรายวิชา',
+        `คุณต้องการลบวิชา "${s.code} - ${s.name}" ใช่หรือไม่?`,
+        '🗑️',
+        () => {
+          if (typeof google !== 'undefined' && google.script && google.script.run) {
+            google.script.run
+              .withSuccessHandler(function(res) {
+                if (res.success) {
+                  showToast(res.message, 'success');
+                  allSubjects = allSubjects.filter(item => item.id !== id);
+                  updateSubjectDropdowns();
+                  renderSubjectTable();
+                } else {
+                  showToast(res.message, 'error');
+                }
+              })
+              .deleteSubject(id, authenticatedPassword);
+          }
+        }
+      );
+    }
+
+    function deleteProject(id) {
+      showConfirm(
+        'ยืนยันการลบผลงาน',
+        'คุณต้องการลบผลงานนี้ใช่หรือไม่?',
+        '🗑️',
+        () => {
+          if (typeof google !== 'undefined' && google.script && google.script.run) {
+            google.script.run
+              .withSuccessHandler(function(res) {
+                if (res.success) {
+                  showToast(res.message, 'success');
+                  allProjects = allProjects.filter(p => p.id !== id);
+                  renderProjects(allProjects);
+                } else {
+                  showToast(res.message, 'error');
+                }
+              })
+              .deleteProject(id, authenticatedPassword);
+          }
+        }
+      );
+    }
+
+    function handleSearch() { filterData(); }
+    function executeSearch() { filterData(); navigateTo('projects'); }
+    function filterCategory(cat) {
+      document.getElementById('filterCategorySelect').value = cat;
+      applyFilters();
+      navigateTo('projects');
+    }
+    function applyFilters() { filterData(); }
+
+    function filterData() {
+      const q = document.getElementById('searchInput').value.toLowerCase().trim();
+      const cat = document.getElementById('filterCategorySelect').value;
+      const sub = document.getElementById('filterSubjectSelect').value;
+      const yr = document.getElementById('filterYearSelect').value;
+
+      let filtered = allProjects.filter(p => {
+        const matchQuery = !q || [
+          p.title, p.students, p.room, p.subject, p.year, p.category, p.description, p.keywords, p.subjectCode
+        ].join(' ').toLowerCase().includes(q);
+
+        const matchCat = !cat || p.category === cat;
+        const matchSub = !sub || p.subject === sub;
+        const matchYr = !yr || String(p.year) === String(yr);
+
+        return matchQuery && matchCat && matchSub && matchYr;
+      });
+
+      renderProjects(filtered);
+    }
+
+    function filterByStudent(studentName) {
+      const firstStudent = studentName.split(',')[0].trim();
+      document.getElementById('searchInput').value = firstStudent;
+      document.getElementById('studentPortfolioHeader').classList.remove('hidden');
+      document.getElementById('studentPortfolioName').textContent = `👨‍🎓 ผลงานทั้งหมดของ: ${firstStudent}`;
+      filterData();
+      navigateTo('projects');
+    }
+
+    function resetFilters() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('filterCategorySelect').value = '';
+      document.getElementById('filterSubjectSelect').value = '';
+      document.getElementById('filterYearSelect').value = '';
+      document.getElementById('studentPortfolioHeader').classList.add('hidden');
+      renderProjects(allProjects);
+    }
+
+    function navigateTo(sectionId) {
+      if (sectionId === 'home') window.scrollTo({ top: 0, behavior: 'smooth' });
+      else if (sectionId === 'projects') document.getElementById('projects-section').scrollIntoView({ behavior: 'smooth' });
+      else if (sectionId === 'subjects') {
+        document.getElementById('projects-section').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('filterSubjectSelect').focus();
+      } else if (sectionId === 'students') {
+        const student = prompt("กรอกชื่อนักเรียนที่ต้องการค้นหา Digital Portfolio:");
+        if (student) filterByStudent(student);
+      } else if (sectionId === 'years') document.getElementById('projects-section').scrollIntoView({ behavior: 'smooth' });
+      else if (sectionId === 'about') document.getElementById('about-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function openDetailModal(id) {
+      const p = allProjects.find(x => x.id === id);
+      if (!p) return;
+
+      document.getElementById('modalDetailContent').innerHTML = `
+        <div class="mb-4">
+          <span class="inline-block bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full mb-2">${p.category || 'ผลงาน'}</span>
+          <h2 class="text-xl sm:text-2xl font-bold text-slate-900">${p.title}</h2>
+        </div>
+        <div class="mb-4 rounded-xl overflow-hidden bg-slate-100 max-h-64 flex items-center justify-center">
+          <img src="${p.cover || 'https://via.placeholder.com/600x400?text=PKW+Computer'}" alt="${p.title}" class="w-full object-cover">
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm bg-slate-50 p-3.5 rounded-xl mb-4 border border-slate-200/60">
+          <div><strong>👨‍🎓 นักเรียน:</strong> ${p.students}</div>
+          <div><strong>🏫 ห้องเรียน:</strong> ${p.room}</div>
+          <div><strong>📚 รายวิชา:</strong> <span class="text-blue-700 font-semibold">${p.subject}</span></div>
+          <div><strong>📅 ปีการศึกษา:</strong> ${p.year}</div>
+        </div>
+        <div class="mb-4">
+          <h4 class="font-bold text-slate-800 text-sm mb-1">คำอธิบายผลงาน:</h4>
+          <p class="text-sm text-slate-600 leading-relaxed">${p.description || 'ไม่มีคำอธิบายเพิ่มเติม'}</p>
+        </div>
+        ${p.keywords ? `
+          <div class="mb-4">
+            <h4 class="font-bold text-slate-800 text-xs mb-1">คำสำคัญ (Keywords):</h4>
+            <div class="flex flex-wrap gap-1">
+              ${p.keywords.split(',').map(k => `<span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded">${k.trim()}</span>`).join('')}
+            </div>
+          </div>
+        ` : ''}
+        <div class="flex flex-wrap gap-2 pt-3 border-t">
+          <a href="${p.projectUrl}" target="_blank" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold py-2.5 px-4 rounded-xl text-center transition">🔗 เปิดผลงานหลัก</a>
+          ${p.docUrl ? `<a href="${p.docUrl}" target="_blank" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-semibold py-2.5 px-4 rounded-xl transition">📄 เอกสาร</a>` : ''}
+          ${p.videoUrl ? `<a href="${p.videoUrl}" target="_blank" class="bg-red-50 hover:bg-red-100 text-red-600 text-xs sm:text-sm font-semibold py-2.5 px-4 rounded-xl transition">🎬 คลิปวิดีโอ</a>` : ''}
+        </div>
+      `;
+      document.getElementById('detailModal').classList.remove('hidden');
+    }
+
+    function openAdminModal() { document.getElementById('adminModal').classList.remove('hidden'); }
+    function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }
+
+    function switchAdminTab(tabName) {
+      document.getElementById('tabAddProject').classList.add('hidden');
+      document.getElementById('tabManageSubjects').classList.add('hidden');
+      document.getElementById('tabAddProjectBtn').classList.remove('active');
+      document.getElementById('tabManageSubjectsBtn').classList.remove('active');
+
+      if (tabName === 'addProject') {
+        document.getElementById('tabAddProject').classList.remove('hidden');
+        document.getElementById('tabAddProjectBtn').classList.add('active');
+      } else if (tabName === 'manageSubjects') {
+        document.getElementById('tabManageSubjects').classList.remove('hidden');
+        document.getElementById('tabManageSubjectsBtn').classList.add('active');
+      }
+    }
+
+    function verifyAdminLogin() {
+      const pass = document.getElementById('adminPassword').value;
+      if (!pass) {
+        showToast('กรุณากรอกรหัสผ่านครู', 'error');
+        return;
+      }
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(isValid) {
+            if (isValid) {
+              authenticatedPassword = pass;
+              document.getElementById('adminLoginStep').classList.add('hidden');
+              document.getElementById('adminPortalStep').classList.remove('hidden');
+              showToast('เข้าสู่ระบบสำเร็จ', 'success');
+              renderProjects(allProjects);
+            } else {
+              showToast('รหัสผ่านไม่ถูกต้อง', 'error');
+            }
+          })
+          .verifyAdmin(pass);
+      }
+    }
+
+    function logoutAdmin() {
+      authenticatedPassword = "";
+      document.getElementById('adminPassword').value = "";
+      document.getElementById('adminPortalStep').classList.add('hidden');
+      document.getElementById('adminLoginStep').classList.remove('hidden');
+      closeModal('adminModal');
+      showToast('ออกจากระบบเรียบร้อยแล้ว', 'success');
+      renderProjects(allProjects);
+    }
+
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = 'กำลังบันทึกข้อมูล...';
+
+      const fileInput = document.getElementById('formCoverFile');
+      let coverBase64 = '';
+
+      if (fileInput.files && fileInput.files[0]) {
+        try {
+          coverBase64 = await convertFileToBase64(fileInput.files[0]);
+        } catch (error) {
+          showToast('ไม่สามารถอ่านไฟล์รูปภาพได้', 'error');
+          btn.disabled = false;
+          btn.textContent = '💾 บันทึกและเผยแพร่';
+          return;
+        }
+      }
+
+      const subjectVal = document.getElementById('formSubject').value;
+      const subjectCode = subjectVal ? subjectVal.split('-')[0].trim() : '';
+
+      const formData = {
+        title: document.getElementById('formTitle').value,
+        students: document.getElementById('formStudents').value,
+        room: document.getElementById('formRoom').value,
+        subject: subjectVal,
+        subjectCode: subjectCode,
+        year: document.getElementById('formYear').value,
+        category: document.getElementById('formCategory').value,
+        description: document.getElementById('formDescription').value,
+        cover: coverBase64,
+        projectUrl: document.getElementById('formProjectUrl').value,
+        docUrl: document.getElementById('formDocUrl').value,
+        videoUrl: document.getElementById('formVideoUrl').value,
+        keywords: document.getElementById('formKeywords').value
+      };
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            btn.disabled = false;
+            btn.textContent = '💾 บันทึกและเผยแพร่';
+            if (res.success) {
+              showToast(res.message, 'success');
+              document.getElementById('addProjectForm').reset();
+              closeModal('adminModal');
+              google.script.run.withSuccessHandler(function(data) {
+                allProjects = data || [];
+                renderProjects(allProjects);
+              }).getProjects();
+            } else {
+              showToast('เกิดข้อผิดพลาด: ' + res.message, 'error');
+            }
+          })
+          .saveProject(formData, authenticatedPassword);
+      }
+    }
+
+    function convertFileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+      });
+    }
+  </script>
+</body>
+</html>
