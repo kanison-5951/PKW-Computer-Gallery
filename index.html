@@ -176,6 +176,16 @@
           ล้างตัวกรองค้นหา
         </button>
       </div>
+
+      <!-- Pagination Controls (เพิ่มใหม่) -->
+      <div id="paginationContainer" class="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200 pt-6">
+        <div class="text-xs text-slate-500" id="paginationInfo">
+          แสดงรายการที่ 0 ถึง 0 จากทั้งหมด 0 รายการ
+        </div>
+        <div class="flex items-center gap-1.5" id="paginationButtons">
+          <!-- ปุ่มเปลี่ยนหน้าจะถูกเพิ่มด้วย JavaScript -->
+        </div>
+      </div>
     </section>
 
     <!-- About Teacher Section -->
@@ -323,7 +333,6 @@
               <div>
                 <label class="block font-semibold text-slate-700 mb-1">อัปโหลดรูปปก (ไฟล์รูปภาพ)</label>
                 <input type="file" id="formCoverFile" accept="image/*" onchange="previewCoverImage(event)" class="w-full px-3 py-1.5 border rounded-lg text-xs bg-white text-slate-700 focus:ring-2 focus:ring-blue-500 file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                <!-- ส่วนตัวอย่างรูปภาพปก -->
                 <div id="coverPreviewContainer" class="hidden mt-2 border rounded-lg p-1 bg-slate-50 flex items-center gap-2">
                   <img id="coverPreviewImg" src="" alt="Cover Preview" class="w-16 h-12 object-cover rounded">
                   <span class="text-xs text-slate-500">ตัวอย่างรูปปก</span>
@@ -421,12 +430,16 @@
   </div>
 
   <script>
-    // ⚠️ นำ Web App URL ที่ได้จาก Google Apps Script มาวางตรงนี้
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbym6EQUCilB2h-MkhMxeP1o_xcTCZFQ8i5SN7pWUJXlrd5WDLCs4PzcuPY5yjwEElNNmA/exec";
 
     let allSubjects = [];
     let allProjects = [];
+    let currentFilteredProjects = []; // เก็บโครงงานที่ผ่านการกรองแล้ว
     let authenticatedPassword = "";
+
+    // ตัวแปรสำหรับการแบ่งหน้า (Pagination)
+    let currentPage = 1;
+    const itemsPerPage = 9; // กำหนด 9 โครงงานต่อหน้า
 
     window.onload = function() {
       fetchData();
@@ -438,7 +451,9 @@
         .then(data => {
           allProjects = data.projects || [];
           allSubjects = data.subjects || [];
-          renderProjects(allProjects);
+          currentFilteredProjects = [...allProjects];
+          currentPage = 1;
+          renderProjects();
           updateSubjectDropdowns();
           renderSubjectTable();
         })
@@ -494,19 +509,33 @@
       modal.classList.remove('hidden');
     }
 
-    function renderProjects(projects) {
+    // ฟังก์ชันแสดงรายการโครงงานตามหน้าที่เลือก
+    function renderProjects() {
       const grid = document.getElementById('projectsGrid');
       const emptyState = document.getElementById('emptyState');
-      document.getElementById('projectCount').textContent = projects.length;
+      const totalItems = currentFilteredProjects.length;
 
-      if (projects.length === 0) {
+      document.getElementById('projectCount').textContent = totalItems;
+
+      if (totalItems === 0) {
         grid.innerHTML = '';
         emptyState.classList.remove('hidden');
+        renderPagination(0);
         return;
       }
 
       emptyState.classList.add('hidden');
-      grid.innerHTML = projects.map(p => `
+
+      // คำนวณช่วงของข้อมูลสำหรับหน้าที่เลือก
+      const totalPages = Math.ceil(totalItems / itemsPerPage);
+      if (currentPage > totalPages) currentPage = totalPages;
+      if (currentPage < 1) currentPage = 1;
+
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+      const projectsToDisplay = currentFilteredProjects.slice(startIndex, endIndex);
+
+      grid.innerHTML = projectsToDisplay.map(p => `
         <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl transition duration-300 flex flex-col group relative">
           ${authenticatedPassword ? `
             <div class="absolute top-3 right-3 z-20 flex gap-1 bg-white/90 backdrop-blur-md p-1 rounded-lg shadow-sm">
@@ -555,6 +584,81 @@
           </div>
         </div>
       `).join('');
+
+      renderPagination(totalItems, startIndex + 1, endIndex);
+    }
+
+    // ฟังก์ชันสร้าง UI ปุ่มกดเปลี่ยนหน้า
+    function renderPagination(totalItems, fromIndex = 0, toIndex = 0) {
+      const container = document.getElementById('paginationContainer');
+      const infoText = document.getElementById('paginationInfo');
+      const buttonsContainer = document.getElementById('paginationButtons');
+
+      if (totalItems === 0) {
+        container.classList.add('hidden');
+        return;
+      }
+
+      container.classList.remove('hidden');
+      infoText.textContent = `แสดงรายการที่ ${fromIndex} ถึง ${toIndex} จากทั้งหมด ${totalItems} รายการ`;
+
+      const totalPages = Math.ceil(totalItems / itemsPerPage);
+      let buttonsHTML = '';
+
+      // หากมีแค่หน้าเดียว ไม่ต้องแสดงปุ่มกดเปลี่ยนหน้า
+      if (totalPages <= 1) {
+        buttonsContainer.innerHTML = '';
+        return;
+      }
+
+      // ปุ่มย้อนกลับ (Previous)
+      buttonsHTML += `
+        <button onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} 
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${currentPage === 1 ? 'border-slate-200 text-slate-300 cursor-not-allowed' : 'border-slate-300 text-slate-700 hover:bg-slate-100'}">
+          ❮
+        </button>
+      `;
+
+      // ปุ่มหมายเลขหน้า (1, 2, 3...)
+      for (let i = 1; i <= totalPages; i++) {
+        if (i === currentPage) {
+          buttonsHTML += `
+            <button class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white shadow-sm">
+              ${i}
+            </button>
+          `;
+        } else {
+          // ซ่อนตัวเลขถ้ามีจำนวนหน้ามากเกินไปเพื่อความสวยงาม
+          if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+            buttonsHTML += `
+              <button onclick="goToPage(${i})" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 text-slate-700 hover:bg-slate-100 transition">
+                ${i}
+              </button>
+            `;
+          } else if (i === currentPage - 2 || i === currentPage + 2) {
+            buttonsHTML += `<span class="text-xs text-slate-400 px-1">...</span>`;
+          }
+        }
+      }
+
+      // ปุ่มถัดไป (Next)
+      buttonsHTML += `
+        <button onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} 
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${currentPage === totalPages ? 'border-slate-200 text-slate-300 cursor-not-allowed' : 'border-slate-300 text-slate-700 hover:bg-slate-100'}">
+          ❯
+        </button>
+      `;
+
+      buttonsContainer.innerHTML = buttonsHTML;
+    }
+
+    // เปลี่ยนหน้าและเลื่อนขึ้นไปที่บริเวณส่วนแสดงโครงงาน
+    function goToPage(page) {
+      const totalPages = Math.ceil(currentFilteredProjects.length / itemsPerPage);
+      if (page < 1 || page > totalPages) return;
+      currentPage = page;
+      renderProjects();
+      document.getElementById('projects-section').scrollIntoView({ behavior: 'smooth' });
     }
 
     function updateSubjectDropdowns() {
@@ -702,7 +806,7 @@
       const sub = document.getElementById('filterSubjectSelect').value;
       const yr = document.getElementById('filterYearSelect').value;
 
-      let filtered = allProjects.filter(p => {
+      currentFilteredProjects = allProjects.filter(p => {
         const matchQuery = !q || [
           p.title, p.students, p.room, p.subject, p.year, p.category, p.description, p.keywords, p.subjectCode
         ].join(' ').toLowerCase().includes(q);
@@ -714,7 +818,8 @@
         return matchQuery && matchCat && matchSub && matchYr;
       });
 
-      renderProjects(filtered);
+      currentPage = 1; // เมื่อกรองข้อมูลใหม่ ให้รีเซ็ตกลับไปหน้าแรก
+      renderProjects();
     }
 
     function filterByStudent(studentName) {
@@ -732,7 +837,9 @@
       document.getElementById('filterSubjectSelect').value = '';
       document.getElementById('filterYearSelect').value = '';
       document.getElementById('studentPortfolioHeader').classList.add('hidden');
-      renderProjects(allProjects);
+      currentFilteredProjects = [...allProjects];
+      currentPage = 1;
+      renderProjects();
     }
 
     function navigateTo(sectionId) {
@@ -819,7 +926,7 @@
             document.getElementById('adminLoginStep').classList.add('hidden');
             document.getElementById('adminPortalStep').classList.remove('hidden');
             showToast('เข้าสู่ระบบสำเร็จ', 'success');
-            renderProjects(allProjects);
+            renderProjects();
           } else {
             showToast('รหัสผ่านไม่ถูกต้อง', 'error');
           }
@@ -833,7 +940,7 @@
       document.getElementById('adminLoginStep').classList.remove('hidden');
       closeModal('adminModal');
       showToast('ออกจากระบบเรียบร้อยแล้ว', 'success');
-      renderProjects(allProjects);
+      renderProjects();
     }
 
     function previewCoverImage(event) {
@@ -908,7 +1015,6 @@
         });
     }
 
-    // 💡 แก้ไขฟังก์ชันแปลงไฟล์ภาพเป็น Base64
     function convertFileToBase64(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
