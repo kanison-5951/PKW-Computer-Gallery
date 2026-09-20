@@ -445,21 +445,61 @@
       fetchData();
     };
 
-    function fetchData() {
-      fetch(WEB_APP_URL)
-        .then(res => res.json())
+    // โหลดข้อมูลจาก API พร้อม browser cache แบบสั้น ๆ
+    // ถ้ามีข้อมูลเก่า จะวาดหน้าเว็บทันที แล้วค่อยตรวจข้อมูลใหม่เบื้องหลัง
+    const BROWSER_CACHE_KEY = 'pkw_gallery_cache_v2';
+    const BROWSER_CACHE_TTL = 60 * 1000; // 1 นาที
+
+    function applyGalleryData(data) {
+      allProjects = data.projects || [];
+      allSubjects = data.subjects || [];
+      currentFilteredProjects = [...allProjects];
+      currentPage = 1;
+      renderProjects();
+      updateSubjectDropdowns();
+      renderSubjectTable();
+    }
+
+    function fetchData(options = {}) {
+      const forceRefresh = options.forceRefresh === true;
+
+      // 1) แสดงข้อมูลจาก browser cache ก่อน เพื่อไม่ให้ผู้ใช้รอ
+      if (!forceRefresh) {
+        try {
+          const cached = JSON.parse(localStorage.getItem(BROWSER_CACHE_KEY) || 'null');
+          if (cached && cached.data && (Date.now() - cached.timestamp < BROWSER_CACHE_TTL)) {
+            applyGalleryData(cached.data);
+          }
+        } catch (e) {
+          localStorage.removeItem(BROWSER_CACHE_KEY);
+        }
+      }
+
+      // 2) ดึงข้อมูลใหม่จาก Apps Script แล้วอัปเดต cache
+      fetch(WEB_APP_URL, { cache: 'no-store' })
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.json();
+        })
         .then(data => {
-          allProjects = data.projects || [];
-          allSubjects = data.subjects || [];
-          currentFilteredProjects = [...allProjects];
-          currentPage = 1;
-          renderProjects();
-          updateSubjectDropdowns();
-          renderSubjectTable();
+          applyGalleryData(data);
+
+          try {
+            localStorage.setItem(BROWSER_CACHE_KEY, JSON.stringify({
+              timestamp: Date.now(),
+              data: data
+            }));
+          } catch (e) {
+            // ถ้าข้อมูลมีขนาดใหญ่เกิน localStorage ให้ข้าม browser cache
+            console.warn('Browser cache skipped:', e);
+          }
         })
         .catch(err => {
-          showToast('ไม่สามารถเชื่อมต่อฐานข้อมูลได้', 'error');
-          console.error(err);
+          // ถ้ามีข้อมูลจาก cache อยู่แล้ว ไม่ต้องรบกวนผู้ใช้ด้วย error toast
+          if (!allProjects.length) {
+            showToast('ไม่สามารถเชื่อมต่อฐานข้อมูลได้', 'error');
+          }
+          console.error('fetchData:', err);
         });
     }
 
@@ -729,7 +769,7 @@
           if (res.success) {
             showToast(res.message, 'success');
             resetSubjectForm();
-            fetchData();
+            fetchData({ forceRefresh: true });
           } else {
             showToast(res.message, 'error');
           }
@@ -769,7 +809,7 @@
           .then(res => {
             if (res.success) {
               showToast(res.message, 'success');
-              fetchData();
+              fetchData({ forceRefresh: true });
             } else {
               showToast(res.message, 'error');
             }
@@ -783,7 +823,7 @@
           .then(res => {
             if (res.success) {
               showToast(res.message, 'success');
-              fetchData();
+              fetchData({ forceRefresh: true });
             } else {
               showToast(res.message, 'error');
             }
@@ -1008,7 +1048,7 @@
             document.getElementById('addProjectForm').reset();
             document.getElementById('coverPreviewContainer').classList.add('hidden');
             closeModal('adminModal');
-            fetchData();
+            fetchData({ forceRefresh: true });
           } else {
             showToast('เกิดข้อผิดพลาด: ' + res.message, 'error');
           }
